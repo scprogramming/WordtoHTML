@@ -189,6 +189,7 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
             if elements.getUnderline():
                 outFile.write('<span class="WordToHTML_SingleUnderline">')
                 closingTagOrder.push("</span>")
+
             outFile.write(elements.getText())
 
             while closingTagOrder.getSize() != 0:

@@ -5,6 +5,9 @@ class Element:
         self.underline = False
         self.italics = False
         self.text = ""
+        self.strikethrough = False
+        self.subscript = False
+        self.superscript = False
 
     def setBold(self,boldIn):
         self.bold = boldIn
@@ -18,6 +21,15 @@ class Element:
     def setItalics(self,italicsIn):
         self.italics = italicsIn
 
+    def setStrikethrough(self,strikethroughIn):
+        self.strikethrough = strikethroughIn
+
+    def setSubscript(self,subscriptIn):
+        self.subscript = subscriptIn
+
+    def setSuperscript(self,superscriptIn):
+        self.superscript = superscriptIn
+
     def getBold(self):
         return self.bold
 
@@ -29,3 +41,12 @@ class Element:
 
     def getItalics(self):
         return self.italics
+
+    def getStrikethrough(self):
+        return self.strikethrough
+
+    def getSubscript(self):
+        return self.subscript
+
+    def getSuperscript(self):
+        return self.superscript
