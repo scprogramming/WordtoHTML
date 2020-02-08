@@ -157,6 +157,8 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
     outFile.write("</head>\n")
 
     outFile.write("<body>\n")
+    i = 0
+    needOpenList = True
 
     for entries in paragraphList:
         closingTagOrder = tagStack()
@@ -165,10 +167,13 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
             listType = abstractToNumIdMap[entries.getListid()]
             listType = abstractToListMap[listType]
 
-            if listType.lower() == "bullet":
-                outFile.write("<ul>\n")
-            else:
-                outFile.write("<ol>\n")
+            if needOpenList:
+                if listType.lower() == "bullet":
+                    outFile.write("<ul>\n")
+                    needOpenList = False
+                else:
+                    outFile.write("<ol>\n")
+                    needOpenList = False
 
             outFile.write("<li>")
         elif entries.getType() == "Paragraph":
@@ -191,12 +196,24 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
 
         if entries.getType() == "ListParagraph":
             outFile.write("</li>\n")
-            if listType.lower() == "bullet":
-                outFile.write("</ul>\n")
+
+            if i + 1 < len(paragraphList):
+                nextId = paragraphList[i + 1].getListid()
+
+                if nextId != entries.getListid():
+                    needOpenList = True
+                    if listType.lower() == "bullet":
+                        outFile.write("</ul>\n")
+                    else:
+                        outFile.write("</ol>\n")
             else:
-                outFile.write("</ol>\n")
+                if listType.lower() == "bullet":
+                    outFile.write("</ul>\n")
+                else:
+                    outFile.write("</ol>\n")
         else:
             outFile.write("</p>\n")
+        i += 1
 
     outFile.write("</body>\n")
     outFile.write("</html>\n")
