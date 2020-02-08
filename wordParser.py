@@ -1,6 +1,8 @@
 from Paragraph import Paragraph
 from Element import Element
 from tagStack import tagStack
+import os
+from shutil import copyfile
 
 def buildXMLElements(targetXML, fileName,numberingXML):
     outFile = open("HTMLOutput/" + fileName + ".html", "w")
@@ -42,7 +44,22 @@ def buildXMLElements(targetXML, fileName,numberingXML):
 
     abstractToListMap, abstractToNumIdMap = captureListTyping(tagSplitNumbering)
     paragraphList = buildParagraphs(tagSplit)
-    createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
+    createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap,fileName)
+    grabMedia(fileName)
+
+
+def grabMedia(fileName):
+    mediaList = []
+    i = 0
+    targetDir = "targetWord/" + fileName + "/word/media/"
+    if not os.path.exists("HTMLOutput/imgs/"):
+        os.mkdir("HTMLOutput/imgs/")
+
+    if os.path.exists(targetDir):
+        for files in os.listdir(targetDir):
+            copyfile(targetDir + files,"HTMLOutput/imgs/" + fileName + "docx_img" + str(i) + ".png")
+            mediaList.append(fileName + "docx_img" + str(i) + ".png")
+            i += 1
 
 def captureListTyping(tagSplitNumbering):
     abstractToNumIdMap = dict()
@@ -82,6 +99,7 @@ def buildParagraphs(tagSplit):
     paragraphList = []
 
     paraEnabled = False
+    picIndex = 0
 
     for tags in tagSplit:
         if "<w:p" in tags and "w:rsidRDefault" in tags:
@@ -114,6 +132,10 @@ def buildParagraphs(tagSplit):
                 formats.setListIndent(elements[elements.index('"')+1:elements.rfind('"')])
             if "<w:numId w:val" in elements and inFormat:
                 formats.setListId(elements[elements.index('"')+1:elements.rfind('"')])
+            if "<pic:nvPicPr" in elements:
+                formats.setImageIndex(picIndex)
+                formats.setType("Image")
+                picIndex += 1
             i += 1
 
     for formats in paragraphList:
@@ -148,6 +170,7 @@ def buildParagraphs(tagSplit):
                 currentText = currentText + elements
 
 
+
         formats.clearElements()
         formats.setElements(currentElementList)
 
@@ -155,7 +178,7 @@ def buildParagraphs(tagSplit):
 
     return paragraphList
 
-def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap):
+def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap,fileName):
 
     outFile.write("<html>\n")
     outFile.write("<head>\n")
@@ -169,67 +192,70 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
     for entries in paragraphList:
         closingTagOrder = tagStack()
 
-        if entries.getType().lower() == "listparagraph":
-            listType = abstractToNumIdMap[entries.getListid()]
-            listType = abstractToListMap[listType]
+        if entries.getType().lower() == "image":
+            outFile.write('<img src="imgs/' + fileName + 'docx_img' + str(entries.getImageIndex()) +  '.png"/>\n')
+        else:
+            if entries.getType().lower() == "listparagraph":
+                listType = abstractToNumIdMap[entries.getListid()]
+                listType = abstractToListMap[listType]
 
-            if needOpenList:
-                if listType.lower() == "bullet":
-                    outFile.write("<ul>\n")
-                    needOpenList = False
+                if needOpenList:
+                    if listType.lower() == "bullet":
+                        outFile.write("<ul>\n")
+                        needOpenList = False
+                    else:
+                        outFile.write("<ol>\n")
+                        needOpenList = False
+
+                outFile.write("<li>")
+            elif entries.getType().lower() == "paragraph":
+                outFile.write("<p>")
+
+            for elements in entries.getElements():
+                if elements.getBold():
+                    outFile.write("<strong>")
+                    closingTagOrder.push("</strong>")
+                if elements.getItalics():
+                    outFile.write("<em>")
+                    closingTagOrder.push("</em>")
+                if elements.getUnderline():
+                    outFile.write('<span class="WordToHTML_SingleUnderline">')
+                    closingTagOrder.push("</span>")
+                if elements.getStrikethrough():
+                    outFile.write("<strike>")
+                    closingTagOrder.push("</strike>")
+                if elements.getSubscript():
+                    outFile.write("<sub>")
+                    closingTagOrder.push("</sub>")
+                if elements.getSuperscript():
+                    outFile.write("<sup>")
+                    closingTagOrder.push("</sup>")
+
+                outFile.write(elements.getText())
+
+                while closingTagOrder.getSize() != 0:
+                    outFile.write(closingTagOrder.pop())
+
+            if entries.getType().lower() == "listparagraph":
+                outFile.write("</li>\n")
+
+                if i + 1 < len(paragraphList):
+                    nextId = paragraphList[i + 1].getListid()
+
+                    if nextId != entries.getListid():
+                        needOpenList = True
+                        if listType.lower() == "bullet":
+                            outFile.write("</ul>\n")
+                        else:
+                            outFile.write("</ol>\n")
                 else:
-                    outFile.write("<ol>\n")
-                    needOpenList = False
-
-            outFile.write("<li>")
-        elif entries.getType().lower() == "paragraph":
-            outFile.write("<p>")
-
-        for elements in entries.getElements():
-            if elements.getBold():
-                outFile.write("<strong>")
-                closingTagOrder.push("</strong>")
-            if elements.getItalics():
-                outFile.write("<em>")
-                closingTagOrder.push("</em>")
-            if elements.getUnderline():
-                outFile.write('<span class="WordToHTML_SingleUnderline">')
-                closingTagOrder.push("</span>")
-            if elements.getStrikethrough():
-                outFile.write("<strike>")
-                closingTagOrder.push("</strike>")
-            if elements.getSubscript():
-                outFile.write("<sub>")
-                closingTagOrder.push("</sub>")
-            if elements.getSuperscript():
-                outFile.write("<sup>")
-                closingTagOrder.push("</sup>")
-
-            outFile.write(elements.getText())
-
-            while closingTagOrder.getSize() != 0:
-                outFile.write(closingTagOrder.pop())
-
-        if entries.getType().lower() == "listparagraph":
-            outFile.write("</li>\n")
-
-            if i + 1 < len(paragraphList):
-                nextId = paragraphList[i + 1].getListid()
-
-                if nextId != entries.getListid():
-                    needOpenList = True
                     if listType.lower() == "bullet":
                         outFile.write("</ul>\n")
                     else:
                         outFile.write("</ol>\n")
             else:
-                if listType.lower() == "bullet":
-                    outFile.write("</ul>\n")
-                else:
-                    outFile.write("</ol>\n")
-        else:
-            outFile.write("</p>\n")
-        i += 1
+                outFile.write("</p>\n")
+            i += 1
 
     outFile.write("</body>\n")
     outFile.write("</html>\n")

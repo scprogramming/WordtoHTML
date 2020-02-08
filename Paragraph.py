@@ -5,6 +5,7 @@ class Paragraph:
         self.elements = []
         self.listIndent = -1
         self.listId = -1
+        self.imageIndex = -1
 
     def getType(self):
         return self.type
@@ -17,6 +18,9 @@ class Paragraph:
 
     def getListid(self):
         return self.listId
+
+    def getImageIndex(self):
+        return self.imageIndex
 
     def setListIndent(self,listIndentIn):
         self.listIndent = listIndentIn
@@ -35,3 +39,6 @@ class Paragraph:
 
     def setListId(self,listIdIn):
         self.listId = listIdIn
+
+    def setImageIndex(self, imageIndexIn):
+        self.imageIndex = imageIndexIn
