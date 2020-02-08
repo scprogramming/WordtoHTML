@@ -125,6 +125,12 @@ def buildParagraphs(tagSplit):
                 currentElement = Element()
             elif "<w:b/>" in elements:
                 currentElement.bold = True
+            elif "<w:strike/>" in elements:
+                currentElement.setStrikethrough(True)
+            elif '<w:vertAlign w:val="subscript"/>' in elements:
+                currentElement.setSubscript(True)
+            elif '<w:vertAlign w:val="superscript"/>' in elements:
+                currentElement.setSuperscript(True)
             elif "<w:i/>" in elements:
                 currentElement.italics = True
             elif "<w:u" in elements:
@@ -189,6 +195,15 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
             if elements.getUnderline():
                 outFile.write('<span class="WordToHTML_SingleUnderline">')
                 closingTagOrder.push("</span>")
+            if elements.getStrikethrough():
+                outFile.write("<strike>")
+                closingTagOrder.push("</strike>")
+            if elements.getSubscript():
+                outFile.write("<sub>")
+                closingTagOrder.push("</sub>")
+            if elements.getSuperscript():
+                outFile.write("<sup>")
+                closingTagOrder.push("</sup>")
 
             outFile.write(elements.getText())
 
