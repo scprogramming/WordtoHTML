@@ -169,7 +169,7 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
     for entries in paragraphList:
         closingTagOrder = tagStack()
 
-        if entries.getType() == "ListParagraph":
+        if entries.getType().lower() == "listparagraph":
             listType = abstractToNumIdMap[entries.getListid()]
             listType = abstractToListMap[listType]
 
@@ -182,7 +182,7 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
                     needOpenList = False
 
             outFile.write("<li>")
-        elif entries.getType() == "Paragraph":
+        elif entries.getType().lower() == "paragraph":
             outFile.write("<p>")
 
         for elements in entries.getElements():
@@ -210,7 +210,7 @@ def createHTMLOutput(outFile,paragraphList,abstractToListMap,abstractToNumIdMap)
             while closingTagOrder.getSize() != 0:
                 outFile.write(closingTagOrder.pop())
 
-        if entries.getType() == "ListParagraph":
+        if entries.getType().lower() == "listparagraph":
             outFile.write("</li>\n")
 
             if i + 1 < len(paragraphList):
